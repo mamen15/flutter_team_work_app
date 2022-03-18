@@ -68,7 +68,7 @@ class _RegisterViewState extends State<RegisterView> {
                         Navigator.of(context).pushNamed(VerifyEmailRoute);
                       } on FirebaseAuthException catch (e) {
                         if (e.code == 'weak-password') {
-                          devtools.log('password is weak');
+                          showErrorDialog(context,'password is weak');
                         } else if (e.code == "email-already-in-use") {
                           showErrorDialog(context,
                               'The email address is already in use by another account.');
