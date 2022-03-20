@@ -13,6 +13,6 @@ class CouldNotFindUser implements Exception {}
 
 class CouldNotDeleteWorkBoard implements Exception {}
 
-class CouldNotWorkBoard implements Exception {}
+class CouldNotFindWorkBoard implements Exception {}
 
 class CouldNoUpdateWorkBoard implements Exception {}

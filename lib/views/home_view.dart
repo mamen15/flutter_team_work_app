@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_2/services/auth/auth_service.dart';
 import 'dart:developer' as devtools show log;
-
 import '../enums/menu_action.dart';
 
 class HomeView extends StatefulWidget {

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path_provider/path_provider.dart';
@@ -7,7 +9,20 @@ import 'crud_exception.dart';
 class WorkBoardService {
   Database? _db;
 
-  Future<DatabaseWorkBoard> updateWorkBoard({required DatabaseWorkBoard workboard, required String text}) async {
+  List<DatabaseWorkBoard> _workboard = [];
+  final _workboardStreamController =
+      StreamController<List<DatabaseWorkBoard>>.broadcast();
+
+  Future<void> _catchWorkBoard() async {
+    final allWorkBoards = await getAllWorkBoards();
+    _workboard = allWorkBoards.toList();
+    _workboardStreamController.add(_workboard);
+  }
+
+  Future<DatabaseWorkBoard> updateWorkBoard({
+    required DatabaseWorkBoard workboard,
+    required String text,
+  }) async {
     final db = _getDatabaseOrThrow();
     await getWorkBoard(id: workboard.id);
     final updatesCount = await db.update(workboardTable, {
@@ -16,8 +31,13 @@ class WorkBoardService {
     });
     if (updatesCount == 0) {
       throw CouldNoUpdateWorkBoard();
-    }else {
-      return await getWorkBoard(id: workboard.id);
+    } else {  
+      final updatedWorkBoard = await getWorkBoard(id: workboard.id);
+      _workboard.removeWhere((workboard) => workboard.id == updatedWorkBoard.id);
+      _workboard.add(updatedWorkBoard);
+      _workboardStreamController.add(_workboard);
+      return updatedWorkBoard;
+    
     }
   }
 
@@ -31,22 +51,30 @@ class WorkBoardService {
 
   Future<DatabaseWorkBoard> getWorkBoard({required int id}) async {
     final db = _getDatabaseOrThrow();
-    final workboard = await db.query(
+    final workboards = await db.query(
       workboardTable,
       limit: 1,
       where: 'id = ?',
       whereArgs: [id],
     );
-    if (workboard.isEmpty) {
-      throw CouldNotWorkBoard;
+    if (workboards.isEmpty) {
+      throw CouldNotFindWorkBoard();
     } else {
-      return DatabaseWorkBoard.fromRow(workboard.first);
+      final workboard = DatabaseWorkBoard.fromRow(workboards.first);
+      _workboard.removeWhere((workboard) => workboard.id == id);
+      _workboard.add(workboard);
+      _workboardStreamController.add(_workboard);
+      return workboard;
     }
   }
 
   Future<int> deleteAllWorkBoards() async {
     final db = _getDatabaseOrThrow();
-    return await db.delete(workboardTable);
+    final numberOfDeletions = await db.delete(workboardTable);
+    _workboard = [];
+    _workboardStreamController.add(_workboard);
+    return numberOfDeletions;
+    
   }
 
   Future<void> deleteWorkBoard({required int id}) async {
@@ -56,7 +84,12 @@ class WorkBoardService {
       where: 'id = ?',
       whereArgs: [id],
     );
-    if (deletedCount == 0) throw CouldNotDeleteWorkBoard();
+    if (deletedCount == 0) {
+      throw CouldNotDeleteWorkBoard();
+    }else{
+      _workboard.removeWhere((workboard) => workboard.id == id);
+      _workboardStreamController.add(_workboard);
+    }
   }
 
   Future<DatabaseWorkBoard> createWorkBoard(
@@ -81,6 +114,9 @@ class WorkBoardService {
       text: text,
       isSyncedWithCloud: true,
     );
+
+    _workboard.add(workboard);
+    _workboardStreamController.add(_workboard);
     return workboard;
   }
 
@@ -174,6 +210,7 @@ class WorkBoardService {
       );''';
 
       await db.execute(createWorkBoardTable);
+      await _catchWorkBoard();
     } on MissingPlatformDirectoryException {
       throw UnableTogetDocumentDirectory();
     }
