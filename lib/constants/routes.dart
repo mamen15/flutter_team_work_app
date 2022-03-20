@@ -1,7 +1,9 @@
-const LoginRoute = '/login/' ;
+const loginRoute = '/login/' ;
 
-const RegisterRoute = '/register/' ;
+const registerRoute = '/register/' ;
 
-const MyHomeRoute = '/myHOME/' ;
+const myHomeRoute = '/myHOME/' ;
 
-const VerifyEmailRoute = '/verify-email/';
+const verifyEmailRoute = '/verify-email/';
+
+const newWorkBoardRoute = '/workboards/new_workboard';

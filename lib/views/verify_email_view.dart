@@ -31,7 +31,7 @@ class _VerifyEmailViewState extends State<VerifyEmailView> {
                   await AuthService.firebase().logOut();
                   Navigator.of(context)
                   .pushNamedAndRemoveUntil(
-                    RegisterRoute, 
+                    registerRoute, 
                     (route) => false);
                 }, 
                 child: const Text('Go back!'))

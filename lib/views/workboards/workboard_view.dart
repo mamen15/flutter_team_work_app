@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_2/services/auth/auth_service.dart';
 import 'package:flutter_application_2/services/crud/workboard_service.dart';
 import 'dart:developer' as devtools show log;
-import '../enums/menu_action.dart';
+import '../../enums/menu_action.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({Key? key}) : super(key: key);
@@ -103,35 +103,35 @@ class _WorkBoardViewState extends State<HomeView> {
           ),
 
           // List view
-          Expanded(
-            child: ListView.builder(
-                itemCount: workboards.length,
-                itemBuilder: (BuildContext context, int index) {
-                  return Dismissible(
-                    key: Key(workboards[index]),
-                    child: Card(
-                      elevation: 4,
-                      margin: const EdgeInsets.all(5),
-                      key: Key(workboards[index]),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: ListTile(
-                        title: Text(workboards[index]),
-                        trailing: IconButton(
-                          onPressed: () {
-                            setState(() {
-                              workboards.removeAt(index);
-                            });
-                          },
-                          icon: const Icon(Icons.delete),
-                          color: Colors.red,
-                        ),
-                      ),
-                    ),
-                  );
-                }),
-          )
+          // Expanded(
+          //   child: ListView.builder(
+          //       itemCount: workboards.length,
+          //       itemBuilder: (BuildContext context, int index) {
+          //         return Dismissible(
+          //           key: Key(workboards[index]),
+          //           child: Card(
+          //             elevation: 4,
+          //             margin: const EdgeInsets.all(5),
+          //             key: Key(workboards[index]),
+          //             shape: RoundedRectangleBorder(
+          //               borderRadius: BorderRadius.circular(20),
+          //             ),
+          //             child: ListTile(
+          //               title: Text(workboards[index]),
+          //               trailing: IconButton(
+          //                 onPressed: () {
+          //                   setState(() {
+          //                     workboards.removeAt(index);
+          //                   });
+          //                 },
+          //                 icon: const Icon(Icons.delete),
+          //                 color: Colors.red,
+          //               ),
+          //             ),
+          //           ),
+          //         );
+          //       }),
+          // )
         ],
       ),
 
