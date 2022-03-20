@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path_provider/path_provider.dart';
@@ -10,8 +9,28 @@ class WorkBoardService {
   Database? _db;
 
   List<DatabaseWorkBoard> _workboard = [];
+
+  static final WorkBoardService _shared = WorkBoardService._sharedInstance();
+  WorkBoardService._sharedInstance();
+  factory WorkBoardService( )=> _shared;
+
   final _workboardStreamController =
       StreamController<List<DatabaseWorkBoard>>.broadcast();
+  Stream<List<DatabaseWorkBoard>> get allWorkBoards => _workboardStreamController.stream;
+
+  Future<DatabaseUser> getOrCreateWorkBoard({required String email}) async {
+    try {
+      final user = await getUser(
+        email: email,
+      );
+      return user;
+    } on CouldNotFindUser {
+      final createdUser = await createUser(email: email);
+      return createdUser;
+    } catch (e) {
+      rethrow;
+    }
+  }
 
   Future<void> _catchWorkBoard() async {
     final allWorkBoards = await getAllWorkBoards();
@@ -23,6 +42,7 @@ class WorkBoardService {
     required DatabaseWorkBoard workboard,
     required String text,
   }) async {
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
     await getWorkBoard(id: workboard.id);
     final updatesCount = await db.update(workboardTable, {
@@ -31,17 +51,18 @@ class WorkBoardService {
     });
     if (updatesCount == 0) {
       throw CouldNoUpdateWorkBoard();
-    } else {  
+    } else {
       final updatedWorkBoard = await getWorkBoard(id: workboard.id);
-      _workboard.removeWhere((workboard) => workboard.id == updatedWorkBoard.id);
+      _workboard
+          .removeWhere((workboard) => workboard.id == updatedWorkBoard.id);
       _workboard.add(updatedWorkBoard);
       _workboardStreamController.add(_workboard);
       return updatedWorkBoard;
-    
     }
   }
 
   Future<Iterable<DatabaseWorkBoard>> getAllWorkBoards() async {
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
     final workboard = await db.query(
       workboardTable,
@@ -50,6 +71,7 @@ class WorkBoardService {
   }
 
   Future<DatabaseWorkBoard> getWorkBoard({required int id}) async {
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
     final workboards = await db.query(
       workboardTable,
@@ -69,15 +91,16 @@ class WorkBoardService {
   }
 
   Future<int> deleteAllWorkBoards() async {
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
     final numberOfDeletions = await db.delete(workboardTable);
     _workboard = [];
     _workboardStreamController.add(_workboard);
     return numberOfDeletions;
-    
   }
 
   Future<void> deleteWorkBoard({required int id}) async {
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
     final deletedCount = await db.delete(
       workboardTable,
@@ -86,7 +109,7 @@ class WorkBoardService {
     );
     if (deletedCount == 0) {
       throw CouldNotDeleteWorkBoard();
-    }else{
+    } else {
       _workboard.removeWhere((workboard) => workboard.id == id);
       _workboardStreamController.add(_workboard);
     }
@@ -94,6 +117,7 @@ class WorkBoardService {
 
   Future<DatabaseWorkBoard> createWorkBoard(
       {required DatabaseUser owner}) async {
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
 
     // make sure owner exists in db with the correct id
@@ -121,6 +145,7 @@ class WorkBoardService {
   }
 
   Future<DatabaseUser> getUser({required String email}) async {
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
     final results = await db.query(
       userTable,
@@ -136,6 +161,7 @@ class WorkBoardService {
   }
 
   Future<DatabaseUser> createUser({required String email}) async {
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
     final results = await db.query(
       userTable,
@@ -153,6 +179,7 @@ class WorkBoardService {
   }
 
   Future<void> deleteUser({required String email}) async {
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
     final deletedCount = await db.delete(
       userTable,
@@ -178,6 +205,14 @@ class WorkBoardService {
     } else {
       await db.close();
       _db = null;
+    }
+  }
+
+  Future<void> _ensureDbIsOpen() async {
+    try {
+      await open();
+    } on DatabaseAlreadyOpenException {
+      //empty
     }
   }
 

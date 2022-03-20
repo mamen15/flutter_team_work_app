@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_2/services/auth/auth_service.dart';
+import 'package:flutter_application_2/services/crud/workboard_service.dart';
 import 'dart:developer' as devtools show log;
 import '../enums/menu_action.dart';
 
@@ -7,15 +8,29 @@ class HomeView extends StatefulWidget {
   const HomeView({Key? key}) : super(key: key);
 
   @override
-  State<HomeView> createState() => _NotesViewState();
+  State<HomeView> createState() => _WorkBoardViewState();
 }
 
-class _NotesViewState extends State<HomeView> {
+class _WorkBoardViewState extends State<HomeView> {
   List workboards = [];
   String input = '';
+  // get current user by email "userEmail"
+  late final WorkBoardService _workboardsService;
+  String get userEmail => AuthService.firebase().currentUser!.email!;
+
+
+
   @override
   void initState() {
+    _workboardsService = WorkBoardService();
+    _workboardsService.open();
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _workboardsService.close();
+    super.dispose();
   }
 
   @override
@@ -26,6 +41,7 @@ class _NotesViewState extends State<HomeView> {
 //        actions: [
       body: Column(
         children: [
+          // logout menu
           Padding(
             padding: const EdgeInsets.only(
               bottom: 0,
@@ -63,6 +79,30 @@ class _NotesViewState extends State<HomeView> {
               radius: 25,
             ),
           ),
+
+          FutureBuilder(
+            future: _workboardsService.getOrCreateWorkBoard(email: userEmail),
+            builder: (context, snapshot) {
+              switch (snapshot.connectionState) {
+                case ConnectionState.done:
+                  return StreamBuilder(
+                      stream: _workboardsService.allWorkBoards,
+                      builder: (context, snapshot) {
+                        switch (snapshot.connectionState) {
+                          case ConnectionState.waiting:
+                            return const Text(
+                                'Start by adding a Workboard <3 ...');
+                          default:
+                            return const CircularProgressIndicator();
+                        }
+                      });
+                default:
+                  return const CircularProgressIndicator();
+              }
+            },
+          ),
+
+          // List view
           Expanded(
             child: ListView.builder(
                 itemCount: workboards.length,
@@ -94,6 +134,8 @@ class _NotesViewState extends State<HomeView> {
           )
         ],
       ),
+
+      //Floating button
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           showDialog(
