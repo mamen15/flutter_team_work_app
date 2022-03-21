@@ -3,6 +3,7 @@ import 'package:flutter_application_2/services/auth/auth_service.dart';
 import 'package:flutter_application_2/services/crud/workboard_service.dart';
 import 'dart:developer' as devtools show log;
 import '../../enums/menu_action.dart';
+import 'package:flutter_application_2/views/workboards/new_workboard_view.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({Key? key}) : super(key: key);
@@ -12,13 +13,17 @@ class HomeView extends StatefulWidget {
 }
 
 class _WorkBoardViewState extends State<HomeView> {
-  List workboards = [];
-  String input = '';
+  late final TextEditingController _textController;
+  // List workboards = [];
+  // String input = '';
+
+
+
   // get current user by email "userEmail"
   late final WorkBoardService _workboardsService;
   String get userEmail => AuthService.firebase().currentUser!.email!;
 
-
+  
 
   @override
   void initState() {
@@ -41,6 +46,7 @@ class _WorkBoardViewState extends State<HomeView> {
 //        actions: [
       body: Column(
         children: [
+          
           // logout menu
           Padding(
             padding: const EdgeInsets.only(
@@ -90,8 +96,9 @@ class _WorkBoardViewState extends State<HomeView> {
                       builder: (context, snapshot) {
                         switch (snapshot.connectionState) {
                           case ConnectionState.waiting:
+                          case ConnectionState.active:
                             return const Text(
-                                'Start by adding a Workboard <3 ...');
+                                'Waiting for all workboards <3 ...');
                           default:
                             return const CircularProgressIndicator();
                         }
@@ -134,44 +141,14 @@ class _WorkBoardViewState extends State<HomeView> {
           // )
         ],
       ),
-
       //Floating button
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                title: const Text("Add a Workboard"),
-                content: Container(
-                  width: double.infinity,
-                  height: 100,
-                  child: Column(
-                    children: [
-                      TextField(
-                        onChanged: (String value) {
-                          input = value;
-                        },
-                        decoration: const InputDecoration(
-                            hintText: "Enter your workboard's name"),
-                      ),
-                      ElevatedButton(
-                          onPressed: () {
-                            setState(() {
-                              workboards.add(input);
-                              Navigator.of(context).pop();
-                            });
-                          },
-                          child: const Text('Add your Workboard Daddy <3')),
-                    ],
-                  ),
-                ),
+        onPressed: () async {
+           final result = await showDialog(
+                context: context,
+                builder: (_) => const newWorkBoardView(),
               );
-            },
-          );
+              return result;
         },
         backgroundColor: Colors.green,
         child: const Icon(Icons.add),
@@ -203,3 +180,5 @@ Future<bool> showLogOutDialog(BuildContext context) {
     },
   ).then((value) => value ?? false);
 }
+
+
