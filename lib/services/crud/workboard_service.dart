@@ -8,15 +8,22 @@ import 'crud_exception.dart';
 class WorkBoardService {
   Database? _db;
 
-  List<DatabaseWorkBoard> _workboard = [];
+  List<DatabaseWorkBoard> _workboards = [];
 
   static final WorkBoardService _shared = WorkBoardService._sharedInstance();
-  WorkBoardService._sharedInstance();
-  factory WorkBoardService( )=> _shared;
+  WorkBoardService._sharedInstance() {
+    _workboardStreamController =
+        StreamController<List<DatabaseWorkBoard>>.broadcast(
+          onListen: () {
+            _workboardStreamController.sink.add(_workboards);
+          },
+        );
+  }
+  factory WorkBoardService() => _shared;
 
-  final _workboardStreamController =
-      StreamController<List<DatabaseWorkBoard>>.broadcast();
-  Stream<List<DatabaseWorkBoard>> get allWorkBoards => _workboardStreamController.stream;
+  late final StreamController<List<DatabaseWorkBoard>> _workboardStreamController;
+  Stream<List<DatabaseWorkBoard>> get allWorkBoards =>
+      _workboardStreamController.stream;
 
   Future<DatabaseUser> getOrCreateWorkBoard({required String email}) async {
     try {
@@ -34,8 +41,8 @@ class WorkBoardService {
 
   Future<void> _catchWorkBoard() async {
     final allWorkBoards = await getAllWorkBoards();
-    _workboard = allWorkBoards.toList();
-    _workboardStreamController.add(_workboard);
+    _workboards = allWorkBoards.toList();
+    _workboardStreamController.add(_workboards);
   }
 
   Future<DatabaseWorkBoard> updateWorkBoard({
@@ -53,10 +60,10 @@ class WorkBoardService {
       throw CouldNoUpdateWorkBoard();
     } else {
       final updatedWorkBoard = await getWorkBoard(id: workboard.id);
-      _workboard
+      _workboards
           .removeWhere((workboard) => workboard.id == updatedWorkBoard.id);
-      _workboard.add(updatedWorkBoard);
-      _workboardStreamController.add(_workboard);
+      _workboards.add(updatedWorkBoard);
+      _workboardStreamController.add(_workboards);
       return updatedWorkBoard;
     }
   }
@@ -83,9 +90,9 @@ class WorkBoardService {
       throw CouldNotFindWorkBoard();
     } else {
       final workboard = DatabaseWorkBoard.fromRow(workboards.first);
-      _workboard.removeWhere((workboard) => workboard.id == id);
-      _workboard.add(workboard);
-      _workboardStreamController.add(_workboard);
+      _workboards.removeWhere((workboard) => workboard.id == id);
+      _workboards.add(workboard);
+      _workboardStreamController.add(_workboards);
       return workboard;
     }
   }
@@ -94,8 +101,8 @@ class WorkBoardService {
     await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
     final numberOfDeletions = await db.delete(workboardTable);
-    _workboard = [];
-    _workboardStreamController.add(_workboard);
+    _workboards = [];
+    _workboardStreamController.add(_workboards);
     return numberOfDeletions;
   }
 
@@ -110,8 +117,8 @@ class WorkBoardService {
     if (deletedCount == 0) {
       throw CouldNotDeleteWorkBoard();
     } else {
-      _workboard.removeWhere((workboard) => workboard.id == id);
-      _workboardStreamController.add(_workboard);
+      _workboards.removeWhere((workboard) => workboard.id == id);
+      _workboardStreamController.add(_workboards);
     }
   }
 
@@ -139,8 +146,8 @@ class WorkBoardService {
       isSyncedWithCloud: true,
     );
 
-    _workboard.add(workboard);
-    _workboardStreamController.add(_workboard);
+    _workboards.add(workboard);
+    _workboardStreamController.add(_workboards);
     return workboard;
   }
 

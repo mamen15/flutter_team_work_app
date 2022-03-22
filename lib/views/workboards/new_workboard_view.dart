@@ -90,10 +90,8 @@ class _newWorkBoardViewState extends State<newWorkBoardView> {
               keyboardType: TextInputType.multiline,
               maxLines: null,
 
-              // onChanged: (String value) {
-              //   input = value;
               // },
-              
+
               decoration: const InputDecoration(
                   contentPadding: EdgeInsets.all(5),
                   hintText: "Enter your workboard's name"),

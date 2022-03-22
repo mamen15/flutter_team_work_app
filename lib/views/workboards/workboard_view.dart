@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_2/services/auth/auth_service.dart';
 import 'package:flutter_application_2/services/crud/workboard_service.dart';
+import 'package:flutter_application_2/utilities/dialogs/logout_dialog.dart';
+import 'package:flutter_application_2/views/workboards/workboard_list_view.dart';
 import 'dart:developer' as devtools show log;
 import '../../enums/menu_action.dart';
 import 'package:flutter_application_2/views/workboards/new_workboard_view.dart';
@@ -17,13 +19,9 @@ class _WorkBoardViewState extends State<HomeView> {
   // List workboards = [];
   // String input = '';
 
-
-
   // get current user by email "userEmail"
   late final WorkBoardService _workboardsService;
   String get userEmail => AuthService.firebase().currentUser!.email!;
-
-  
 
   @override
   void initState() {
@@ -32,11 +30,11 @@ class _WorkBoardViewState extends State<HomeView> {
     super.initState();
   }
 
-  @override
-  void dispose() {
-    _workboardsService.close();
-    super.dispose();
-  }
+  // @override
+  // void dispose() {
+  //   _workboardsService.close();
+  //   super.dispose();
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +44,6 @@ class _WorkBoardViewState extends State<HomeView> {
 //        actions: [
       body: Column(
         children: [
-          
           // logout menu
           Padding(
             padding: const EdgeInsets.only(
@@ -97,8 +94,21 @@ class _WorkBoardViewState extends State<HomeView> {
                         switch (snapshot.connectionState) {
                           case ConnectionState.waiting:
                           case ConnectionState.active:
-                            return const Text(
-                                'Waiting for all workboards <3 ...');
+                            if (snapshot.hasData) {
+                              final allWorkboards =
+                                  snapshot.data as List<DatabaseWorkBoard>;
+                              return Expanded(
+                                child: WorkboardsListView(
+                                    workboards: allWorkboards,
+                                    onDeleteWorkboard: (workboard) async {
+                                      await _workboardsService.deleteWorkBoard(
+                                          id: workboard.id);
+                                    }),
+                              );
+                            } else {
+                              return const CircularProgressIndicator();
+                            }
+
                           default:
                             return const CircularProgressIndicator();
                         }
@@ -108,47 +118,16 @@ class _WorkBoardViewState extends State<HomeView> {
               }
             },
           ),
-
-          // List view
-          // Expanded(
-          //   child: ListView.builder(
-          //       itemCount: workboards.length,
-          //       itemBuilder: (BuildContext context, int index) {
-          //         return Dismissible(
-          //           key: Key(workboards[index]),
-          //           child: Card(
-          //             elevation: 4,
-          //             margin: const EdgeInsets.all(5),
-          //             key: Key(workboards[index]),
-          //             shape: RoundedRectangleBorder(
-          //               borderRadius: BorderRadius.circular(20),
-          //             ),
-          //             child: ListTile(
-          //               title: Text(workboards[index]),
-          //               trailing: IconButton(
-          //                 onPressed: () {
-          //                   setState(() {
-          //                     workboards.removeAt(index);
-          //                   });
-          //                 },
-          //                 icon: const Icon(Icons.delete),
-          //                 color: Colors.red,
-          //               ),
-          //             ),
-          //           ),
-          //         );
-          //       }),
-          // )
         ],
       ),
       //Floating button
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-           final result = await showDialog(
-                context: context,
-                builder: (_) => const newWorkBoardView(),
-              );
-              return result;
+          final result = await showDialog(
+            context: context,
+            builder: (_) => const newWorkBoardView(),
+          );
+          return result;
         },
         backgroundColor: Colors.green,
         child: const Icon(Icons.add),
@@ -156,29 +135,3 @@ class _WorkBoardViewState extends State<HomeView> {
     );
   }
 }
-
-Future<bool> showLogOutDialog(BuildContext context) {
-  return showDialog<bool>(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        title: const Text('Log out'),
-        content: const Text('Are you sure you want to Log out?'),
-        actions: [
-          TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(false);
-              },
-              child: const Text('Cancel')),
-          TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(true);
-              },
-              child: const Text('Log out')),
-        ],
-      );
-    },
-  ).then((value) => value ?? false);
-}
-
-
