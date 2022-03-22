@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_2/constants/routes.dart';
 import 'package:flutter_application_2/services/auth/auth_service.dart';
 import 'package:flutter_application_2/services/crud/workboard_service.dart';
 import 'package:flutter_application_2/utilities/dialogs/logout_dialog.dart';
 import 'package:flutter_application_2/views/workboards/workboard_list_view.dart';
 import 'dart:developer' as devtools show log;
 import '../../enums/menu_action.dart';
-import 'package:flutter_application_2/views/workboards/new_workboard_view.dart';
+import 'package:flutter_application_2/views/workboards/create_update_workboard_view.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({Key? key}) : super(key: key);
@@ -16,8 +17,7 @@ class HomeView extends StatefulWidget {
 
 class _WorkBoardViewState extends State<HomeView> {
   late final TextEditingController _textController;
-  // List workboards = [];
-  // String input = '';
+
 
   // get current user by email "userEmail"
   late final WorkBoardService _workboardsService;
@@ -84,7 +84,7 @@ class _WorkBoardViewState extends State<HomeView> {
           ),
 
           FutureBuilder(
-            future: _workboardsService.getOrCreateWorkBoard(email: userEmail),
+            future: _workboardsService.getOrCreateUser(email: userEmail),
             builder: (context, snapshot) {
               switch (snapshot.connectionState) {
                 case ConnectionState.done:
@@ -99,10 +99,21 @@ class _WorkBoardViewState extends State<HomeView> {
                                   snapshot.data as List<DatabaseWorkBoard>;
                               return Expanded(
                                 child: WorkboardsListView(
+                                  onTap: (workBoard) {
+                                    
+                                    Navigator.of(context).pushNamed(
+                                      createOrUpdateWorkBoardRoute,
+                                      arguments: workBoard,
+                                    );
+
+
+
+                                  },
                                     workboards: allWorkboards,
                                     onDeleteWorkboard: (workboard) async {
                                       await _workboardsService.deleteWorkBoard(
-                                          id: workboard.id);
+                                        id: workboard.id,
+                                      );
                                     }),
                               );
                             } else {
@@ -125,7 +136,7 @@ class _WorkBoardViewState extends State<HomeView> {
         onPressed: () async {
           final result = await showDialog(
             context: context,
-            builder: (_) => const newWorkBoardView(),
+            builder: (_) => const createOrUpdateWorkBoardView(),
           );
           return result;
         },

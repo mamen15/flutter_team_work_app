@@ -6,4 +6,4 @@ const myHomeRoute = '/myHOME/' ;
 
 const verifyEmailRoute = '/verify-email/';
 
-const newWorkBoardRoute = '/workboards/new_workboard';
+const createOrUpdateWorkBoardRoute = '/workboards/new_workboard';

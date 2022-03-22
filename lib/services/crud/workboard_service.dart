@@ -14,18 +14,19 @@ class WorkBoardService {
   WorkBoardService._sharedInstance() {
     _workboardStreamController =
         StreamController<List<DatabaseWorkBoard>>.broadcast(
-          onListen: () {
-            _workboardStreamController.sink.add(_workboards);
-          },
-        );
+      onListen: () {
+        _workboardStreamController.sink.add(_workboards);
+      },
+    );
   }
   factory WorkBoardService() => _shared;
 
-  late final StreamController<List<DatabaseWorkBoard>> _workboardStreamController;
+  late final StreamController<List<DatabaseWorkBoard>>
+      _workboardStreamController;
   Stream<List<DatabaseWorkBoard>> get allWorkBoards =>
       _workboardStreamController.stream;
 
-  Future<DatabaseUser> getOrCreateWorkBoard({required String email}) async {
+  Future<DatabaseUser> getOrCreateUser({required String email}) async {
     try {
       final user = await getUser(
         email: email,
@@ -51,11 +52,16 @@ class WorkBoardService {
   }) async {
     await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
+
+     // make sure workboards exists
     await getWorkBoard(id: workboard.id);
+
+    // update DB
     final updatesCount = await db.update(workboardTable, {
       textColumn: text,
       isSyncedWithCloudColumn: 0,
     });
+    
     if (updatesCount == 0) {
       throw CouldNoUpdateWorkBoard();
     } else {
@@ -157,7 +163,7 @@ class WorkBoardService {
     final results = await db.query(
       userTable,
       limit: 1,
-      where: 'email?',
+      where: 'email = ?',
       whereArgs: [email.toLowerCase()],
     );
     if (results.isEmpty) {
@@ -232,25 +238,9 @@ class WorkBoardService {
       final dbPath = join(docsPath.path, dbName);
       final db = await openDatabase(dbPath);
       _db = db;
-
-      // create User Table
-      const createUserTable = '''CREATE TABLE IF NOT EXISTS "user" (
-	      "id"	INTEGER NOT NULL,
-	      "email"	TEXT NOT NULL UNIQUE,
-	      PRIMARY KEY("id" AUTOINCREMENT)
-      );''';
+      // create the user table
       await db.execute(createUserTable);
-
-      // create WorkBoard Table
-      const createWorkBoardTable = '''CREATE TABLE IF NOT EXISTS "WorkBoard" (
-      	"id"	INTEGER NOT NULL,
-      	"user_id"	INTEGER NOT NULL,
-      	"text"	TEXT,
-      	"is_synced_with_cloud"	INTEGER NOT NULL DEFAULT 0,
-      	FOREIGN KEY("user_id") REFERENCES "user"("id"),
-      	PRIMARY KEY("id" AUTOINCREMENT)
-      );''';
-
+      // create WorkBoard table
       await db.execute(createWorkBoardTable);
       await _catchWorkBoard();
     } on MissingPlatformDirectoryException {
@@ -321,3 +311,20 @@ const emailColumn = 'email';
 const userIdColumn = 'user_id';
 const textColumn = 'text';
 const isSyncedWithCloudColumn = 'is_synced_with_cloud';
+
+// create User Table
+const createUserTable = '''CREATE TABLE IF NOT EXISTS "user" (
+	      "id"	INTEGER NOT NULL,
+	      "email"	TEXT NOT NULL UNIQUE,
+	      PRIMARY KEY("id" AUTOINCREMENT)
+      );''';
+
+// create WorkBoard Table
+const createWorkBoardTable = '''CREATE TABLE IF NOT EXISTS "WorkBoard" (
+      	"id"	INTEGER NOT NULL,
+      	"user_id"	INTEGER NOT NULL,
+      	"text"	TEXT,
+      	"is_synced_with_cloud"	INTEGER NOT NULL DEFAULT 0,
+      	FOREIGN KEY("user_id") REFERENCES "user"("id"),
+      	PRIMARY KEY("id" AUTOINCREMENT)
+      );''';
