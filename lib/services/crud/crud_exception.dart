@@ -16,3 +16,5 @@ class CouldNotDeleteWorkBoard implements Exception {}
 class CouldNotFindWorkBoard implements Exception {}
 
 class CouldNoUpdateWorkBoard implements Exception {}
+
+class UserShoulBeSetBeforeReadingAllWorkboards implements Exception {}

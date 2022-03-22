@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_2/extensions/list/filter.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' show join;
@@ -9,6 +10,8 @@ class WorkBoardService {
   Database? _db;
 
   List<DatabaseWorkBoard> _workboards = [];
+
+  DatabaseUser? _user;
 
   static final WorkBoardService _shared = WorkBoardService._sharedInstance();
   WorkBoardService._sharedInstance() {
@@ -24,23 +27,39 @@ class WorkBoardService {
   late final StreamController<List<DatabaseWorkBoard>>
       _workboardStreamController;
   Stream<List<DatabaseWorkBoard>> get allWorkBoards =>
-      _workboardStreamController.stream;
+      _workboardStreamController.stream.filter((workboard) {
+        final currentUser = _user;
+        if (currentUser != null) {
+          return workboard.userId == currentUser.id;
+        } else {
+          throw UserShoulBeSetBeforeReadingAllWorkboards();
+        }
+      });
 
-  Future<DatabaseUser> getOrCreateUser({required String email}) async {
+  Future<DatabaseUser> getOrCreateUser({
+    required String email,
+    bool setAsCurrentUser = true,
+  }) async {
     try {
       final user = await getUser(
         email: email,
       );
+      if (setAsCurrentUser) {
+        _user = user;
+      }
       return user;
     } on CouldNotFindUser {
       final createdUser = await createUser(email: email);
+      if (setAsCurrentUser) {
+        _user = createdUser;
+      }
       return createdUser;
     } catch (e) {
       rethrow;
     }
   }
 
-  Future<void> _catchWorkBoard() async {
+  Future<void> _cacheWorkBoard() async {
     final allWorkBoards = await getAllWorkBoards();
     _workboards = allWorkBoards.toList();
     _workboardStreamController.add(_workboards);
@@ -53,15 +72,20 @@ class WorkBoardService {
     await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
 
-     // make sure workboards exists
+    // make sure workboards exists
     await getWorkBoard(id: workboard.id);
 
     // update DB
-    final updatesCount = await db.update(workboardTable, {
-      textColumn: text,
-      isSyncedWithCloudColumn: 0,
-    });
-    
+    final updatesCount = await db.update(
+      workboardTable,
+      {
+        textColumn: text,
+        isSyncedWithCloudColumn: 0,
+      },
+      where: 'id = ?',
+      whereArgs: [workboard.id],
+    );
+
     if (updatesCount == 0) {
       throw CouldNoUpdateWorkBoard();
     } else {
@@ -242,7 +266,7 @@ class WorkBoardService {
       await db.execute(createUserTable);
       // create WorkBoard table
       await db.execute(createWorkBoardTable);
-      await _catchWorkBoard();
+      await _cacheWorkBoard();
     } on MissingPlatformDirectoryException {
       throw UnableTogetDocumentDirectory();
     }
