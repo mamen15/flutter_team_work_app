@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_2/services/crud/workboard_service.dart';
+import 'package:flutter_application_2/services/cloud/cloud_workboard.dart';
 import 'package:flutter_application_2/utilities/dialogs/delete_dialog.dart';
 
-typedef WorkboardCallBack = void Function(DatabaseWorkBoard workBoard);
+typedef WorkboardCallBack = void Function(CloudWorkboard workBoard);
 
 class WorkboardsListView extends StatelessWidget {
-  final List<DatabaseWorkBoard> workboards;
+  final Iterable<CloudWorkboard> workboards;
   final WorkboardCallBack onDeleteWorkboard;
   final WorkboardCallBack onTap;
   const WorkboardsListView({
@@ -20,7 +20,7 @@ class WorkboardsListView extends StatelessWidget {
     return ListView.builder(
       itemCount: workboards.length,
       itemBuilder: (BuildContext context, int index) {
-        final workboard = workboards[index];
+        final workboard = workboards.elementAt(index);
         return Card(
           elevation: 4,
           margin: const EdgeInsets.all(5),

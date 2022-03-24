@@ -5,12 +5,12 @@ import 'package:flutter_application_2/services/cloud/cloud_workboard.dart';
 
 class FirebaseCloudStorage {
   final workboards = FirebaseFirestore.instance.collection('workboards');
-  
+
   Future<void> deleteWorkboard({
     required String documentId,
   }) async {
     try {
-      await workboards.doc(documentId).delete() ;
+      await workboards.doc(documentId).delete();
     } catch (e) {
       throw CouldNotDeleteWorkBoardException();
     }
@@ -21,7 +21,7 @@ class FirebaseCloudStorage {
     required String text,
   }) async {
     try {
-      await workboards.doc(documentId).update({workboardTextFieldName : text}) ;
+      await workboards.doc(documentId).update({workboardTextFieldName: text});
     } catch (e) {
       throw CouldNotUpdateWorkBoardException();
     }
@@ -39,25 +39,29 @@ class FirebaseCloudStorage {
       return await workboards
           .where(ownerUserIdFieldName, isEqualTo: ownerUserId)
           .get()
-          .then((value) => value.docs.map((doc) {
-                return CloudWorkboard(
-                  documentId: doc.id,
-                  ownerUserId: doc.data()[ownerUserIdFieldName],
-                  text: doc.data()[workboardTextFieldName] as String,
-                );
-              }));
+          .then(
+            (value) => value.docs.map(
+              (doc) => CloudWorkboard.fromSnapshot(doc),
+            ),
+          );
     } catch (e) {
       throw CouldNotGetAllWorkBoardException();
     }
   }
 
-  void createNewWorkboard({required String ownerUserId}) async {
-    await workboards.add({
+  Future<CloudWorkboard> createNewWorkboard({required String ownerUserId}) async {
+    final document = await workboards.add({
       ownerUserIdFieldName: ownerUserId,
       workboardTextFieldName: '',
     });
+    final fetchedWorkboard = await document.get();
+    return CloudWorkboard(
+      documentId: fetchedWorkboard.id, 
+      ownerUserId: ownerUserId, 
+      text: '',);
   }
 
+// this below is a singleton initializer
   static final FirebaseCloudStorage _shared =
       FirebaseCloudStorage._sharedInstance();
   FirebaseCloudStorage._sharedInstance();

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_2/constants/routes.dart';
 import 'package:flutter_application_2/services/auth/auth_service.dart';
+import 'package:flutter_application_2/services/cloud/cloud_workboard.dart';
+import 'package:flutter_application_2/services/cloud/firebase_cloud_storage.dart';
 import 'package:flutter_application_2/services/crud/workboard_service.dart';
 import 'package:flutter_application_2/utilities/dialogs/logout_dialog.dart';
 import 'package:flutter_application_2/views/workboards/workboard_list_view.dart';
@@ -18,15 +20,13 @@ class HomeView extends StatefulWidget {
 class _WorkBoardViewState extends State<HomeView> {
   late final TextEditingController _textController;
 
-
   // get current user by email "userEmail"
-  late final WorkBoardService _workboardsService;
-  String get userEmail => AuthService.firebase().currentUser!.email;
+  late final FirebaseCloudStorage _workboardsService;
+  String get userId => AuthService.firebase().currentUser!.id;
 
   @override
   void initState() {
-    _workboardsService = WorkBoardService();
-    _workboardsService.open();
+    _workboardsService = FirebaseCloudStorage();
     super.initState();
   }
 
@@ -83,52 +83,38 @@ class _WorkBoardViewState extends State<HomeView> {
             ),
           ),
 
-          FutureBuilder(
-            future: _workboardsService.getOrCreateUser(email: userEmail),
-            builder: (context, snapshot) {
-              switch (snapshot.connectionState) {
-                case ConnectionState.done:
-                  return StreamBuilder(
-                      stream: _workboardsService.allWorkBoards,
-                      builder: (context, snapshot) {
-                        switch (snapshot.connectionState) {
-                          case ConnectionState.waiting:
-                          case ConnectionState.active:
-                            if (snapshot.hasData) {
-                              final allWorkboards =
-                                  snapshot.data as List<DatabaseWorkBoard>;
-                              return Expanded(
-                                child: WorkboardsListView(
-                                  onTap: (workBoard) {
-                                    
-                                    Navigator.of(context).pushNamed(
-                                      createOrUpdateWorkBoardRoute,
-                                      arguments: workBoard,
-                                    );
-
-
-
-                                  },
-                                    workboards: allWorkboards,
-                                    onDeleteWorkboard: (workboard) async {
-                                      await _workboardsService.deleteWorkBoard(
-                                        id: workboard.id,
-                                      );
-                                    }),
+          StreamBuilder(
+              stream: _workboardsService.allWorkboards(ownerUserId: userId),
+              builder: (context, snapshot) {
+                switch (snapshot.connectionState) {
+                  case ConnectionState.waiting:
+                  case ConnectionState.active:
+                    if (snapshot.hasData) {
+                      final allWorkboards =
+                          snapshot.data as Iterable<CloudWorkboard>;
+                      return Expanded(
+                        child: WorkboardsListView(
+                            onTap: (workBoard) {
+                              Navigator.of(context).pushNamed(
+                                createOrUpdateWorkBoardRoute,
+                                arguments: workBoard,
                               );
-                            } else {
-                              return const CircularProgressIndicator();
-                            }
+                            },
+                            workboards: allWorkboards,
+                            onDeleteWorkboard: (workboard) async {
+                              await _workboardsService.deleteWorkboard(
+                                documentId: workboard.documentId,
+                              );
+                            }),
+                      );
+                    } else {
+                      return const CircularProgressIndicator();
+                    }
 
-                          default:
-                            return const CircularProgressIndicator();
-                        }
-                      });
-                default:
-                  return const CircularProgressIndicator();
-              }
-            },
-          ),
+                  default:
+                    return const CircularProgressIndicator();
+                }
+              })
         ],
       ),
       //Floating button

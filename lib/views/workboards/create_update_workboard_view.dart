@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_2/services/auth/auth_service.dart';
-import 'package:flutter_application_2/services/crud/workboard_service.dart';
+import 'package:flutter_application_2/services/cloud/firebase_cloud_storage.dart';
 import 'package:flutter_application_2/utilities/dialogs/generics/get_arguments.dart';
+import 'package:flutter_application_2/services/cloud/cloud_storage_exeptions.dart';
+import 'package:flutter_application_2/services/cloud/cloud_workboard.dart';
 
 class createOrUpdateWorkBoardView extends StatefulWidget {
   const createOrUpdateWorkBoardView({Key? key}) : super(key: key);
@@ -13,13 +15,13 @@ class createOrUpdateWorkBoardView extends StatefulWidget {
 
 class _createOrUpdateWorkBoardViewState
     extends State<createOrUpdateWorkBoardView> {
-  DatabaseWorkBoard? _woarkboard;
-  late final WorkBoardService _workboardsService;
+  CloudWorkboard? _woarkboard;
+  late final FirebaseCloudStorage _workboardsService;
   late final TextEditingController _textController;
 
   @override
   void initState() {
-    _workboardsService = WorkBoardService();
+    _workboardsService = FirebaseCloudStorage();
     _textController = TextEditingController();
     super.initState();
   }
@@ -30,8 +32,8 @@ class _createOrUpdateWorkBoardViewState
       return;
     }
     final text = _textController.text;
-    await _workboardsService.updateWorkBoard(
-      workboard: workboard,
+    await _workboardsService.updateWorkboard(
+      documentId: workboard.documentId,
       text: text,
     );
   }
@@ -41,9 +43,9 @@ class _createOrUpdateWorkBoardViewState
     _textController.addListener((_textControllerListener));
   }
 
-  Future<DatabaseWorkBoard> createOrGetExistingWorkboard(
+  Future<CloudWorkboard> createOrGetExistingWorkboard(
       BuildContext context) async {
-    final widgetWorkboard = context.getArgument<DatabaseWorkBoard>();
+    final widgetWorkboard = context.getArgument<CloudWorkboard>();
     if (widgetWorkboard != null) {
       _woarkboard = widgetWorkboard;
       _textController.text = widgetWorkboard.text;
@@ -54,9 +56,9 @@ class _createOrUpdateWorkBoardViewState
       return existingWorkboard;
     }
     final currentUser = AuthService.firebase().currentUser!;
-    final email = currentUser.email;
-    final owner = await _workboardsService.getUser(email: email);
-    final newWorkboard = await _workboardsService.createWorkBoard(owner: owner);
+    final userId = currentUser.id;
+    final newWorkboard =
+        await _workboardsService.createNewWorkboard(ownerUserId: userId);
     _woarkboard = newWorkboard;
     return newWorkboard;
   }
@@ -64,7 +66,7 @@ class _createOrUpdateWorkBoardViewState
   void _deleteWorkboardIfTextIsEmpty() {
     final workboard = _woarkboard;
     if (_textController.text.isEmpty && workboard != null) {
-      _workboardsService.deleteWorkBoard(id: workboard.id);
+      _workboardsService.deleteWorkboard(documentId: workboard.documentId);
     }
   }
 
@@ -72,8 +74,8 @@ class _createOrUpdateWorkBoardViewState
     final workboard = _woarkboard;
     final text = _textController.text;
     if (workboard != null && _textController.text.isNotEmpty) {
-      _workboardsService.updateWorkBoard(
-        workboard: workboard,
+      _workboardsService.updateWorkboard(
+        documentId: workboard.documentId,
         text: text,
       );
     }
