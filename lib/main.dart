@@ -8,26 +8,28 @@ import 'constants/routes.dart';
 import 'views/workboards/workboard_view.dart';
 
 void main() {
-  
   WidgetsFlutterBinding.ensureInitialized();
   runApp(
     MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        primarySwatch: Colors.green,
+        colorScheme: ColorScheme.fromSwatch().copyWith(
+          primary: const Color(0xFF801E48),
+          secondary: const Color(0xFF801E48),
+        ),
       ),
       home: const HomePage(),
       routes: {
         loginRoute: (context) => const Loginview(),
-        registerRoute :(context) => const RegisterView(),
-        myHomeRoute :(context) => const HomeView(),
-        verifyEmailRoute :(context) => const VerifyEmailView(),
-        createOrUpdateWorkBoardRoute :(context) => const createOrUpdateWorkBoardView(),
+        registerRoute: (context) => const RegisterView(),
+        myHomeRoute: (context) => const HomeView(),
+        verifyEmailRoute: (context) => const VerifyEmailView(),
+        createOrUpdateWorkBoardRoute: (context) =>
+            const createOrUpdateWorkBoardView(),
       },
     ),
   );
 }
-
 
 class HomePage extends StatelessWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -35,34 +37,28 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-        future: AuthService.firebase().initialize(),
-        builder: (context, snapshot) {
-           switch (snapshot.connectionState) {
-            case ConnectionState.done:
-            final user = AuthService.firebase().currentUser ;
-               if (user != null) {
-                 if (user.isEmailVerified) {
-                   return const HomeView();
-                   //return const Text('email is verified');
-                 }
-                 else{
-                   return const VerifyEmailView();
-                 }
-               } else {
-                 return const Loginview();
-               }
-              default:
-              return const Scaffold( 
+      future: AuthService.firebase().initialize(),
+      builder: (context, snapshot) {
+        switch (snapshot.connectionState) {
+          case ConnectionState.done:
+            final user = AuthService.firebase().currentUser;
+            if (user != null) {
+              if (user.isEmailVerified) {
+                return const HomeView();
+                //return const Text('email is verified');
+              } else {
+                return const VerifyEmailView();
+              }
+            } else {
+              return const Loginview();
+            }
+          default:
+            return const Scaffold(
                 body: Center(
-                  child : CircularProgressIndicator(),
-                ) 
-              );
-          }
-        },
-      );
+              child: CircularProgressIndicator(),
+            ));
+        }
+      },
+    );
   }
 }
-
-
-
-

@@ -6,6 +6,7 @@ import 'package:flutter_application_2/services/cloud/firebase_cloud_storage.dart
 import 'package:flutter_application_2/services/crud/workboard_service.dart';
 import 'package:flutter_application_2/utilities/dialogs/logout_dialog.dart';
 import 'package:flutter_application_2/views/workboards/workboard_list_view.dart';
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'dart:developer' as devtools show log;
 import '../../enums/menu_action.dart';
 import 'package:flutter_application_2/views/workboards/create_update_workboard_view.dart';
@@ -18,7 +19,6 @@ class HomeView extends StatefulWidget {
 }
 
 class _WorkBoardViewState extends State<HomeView> {
-  late final TextEditingController _textController;
 
   // get current user by email "userEmail"
   late final FirebaseCloudStorage _workboardsService;
@@ -53,6 +53,7 @@ class _WorkBoardViewState extends State<HomeView> {
               top: 70.0,
             ),
             child: CircleAvatar(
+              backgroundColor: const Color(0xFF801E48),
               child: PopupMenuButton<MenuAction>(
                 onSelected: (value) async {
                   switch (value) {
@@ -74,7 +75,7 @@ class _WorkBoardViewState extends State<HomeView> {
                     child: Text('Log out'),
                   ),
                 ],
-                color: Colors.blueGrey.shade50,
+                color: Colors.white,
                 offset: const Offset(0, 50),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16)),
@@ -117,18 +118,59 @@ class _WorkBoardViewState extends State<HomeView> {
               })
         ],
       ),
+
       //Floating button
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          final result = await showDialog(
-            context: context,
-            builder: (_) => const createOrUpdateWorkBoardView(),
-          );
-          return result;
-        },
-        backgroundColor: Colors.green,
-        child: const Icon(Icons.add),
+      floatingActionButton: SpeedDial(
+        animatedIcon: AnimatedIcons.menu_close,
+        animatedIconTheme: const IconThemeData(size: 22),
+        backgroundColor: const Color(0xFF801E48),
+        visible: true,
+        curve: Curves.bounceIn,
+        children: [
+          SpeedDialChild(
+              child: const Icon(Icons.add),
+              backgroundColor: const Color(0xFF801E48),
+              onTap: () async {
+                final result = await showDialog(
+                  context: context,
+                  builder: (_) => const createOrUpdateWorkBoardView(),
+                );
+                return result;
+              },
+              label: 'Add a workboard',
+              labelStyle: const TextStyle(
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white,
+                  fontSize: 16.0),
+              labelBackgroundColor: const Color(0xFF801E48)),
+          // FAB 1
+          SpeedDialChild(
+              child: const Icon(Icons.share),
+              backgroundColor: const Color(0xFF801E48),
+              onTap: () {
+                /* do anything */
+              },
+              label: 'share your workboards',
+              labelStyle: const TextStyle(
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white,
+                  fontSize: 16.0),
+              labelBackgroundColor: const Color(0xFF801E48)),
+          // FAB 2
+        ],
       ),
+
+      // FloatingActionButton(
+      //   onPressed: () async {
+      //     final result = await showDialog(
+      //       context: context,
+      //       builder: (_) => const createOrUpdateWorkBoardView(),
+      //     );
+      //     return result;
+      //   },
+      //   backgroundColor: Colors.green,
+      //   child: const Icon(Icons.add),
+      // ),
     );
   }
 }
