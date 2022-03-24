@@ -21,7 +21,7 @@ class _WorkBoardViewState extends State<HomeView> {
 
   // get current user by email "userEmail"
   late final WorkBoardService _workboardsService;
-  String get userEmail => AuthService.firebase().currentUser!.email!;
+  String get userEmail => AuthService.firebase().currentUser!.email;
 
   @override
   void initState() {

@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_application_2/services/auth/auth_service.dart';
 import 'package:flutter_application_2/services/crud/workboard_service.dart';
@@ -55,7 +54,7 @@ class _createOrUpdateWorkBoardViewState
       return existingWorkboard;
     }
     final currentUser = AuthService.firebase().currentUser!;
-    final email = currentUser.email!;
+    final email = currentUser.email;
     final owner = await _workboardsService.getUser(email: email);
     final newWorkboard = await _workboardsService.createWorkBoard(owner: owner);
     _woarkboard = newWorkboard;
@@ -72,7 +71,7 @@ class _createOrUpdateWorkBoardViewState
   void _saveWorkboardIfTextIsNotEmpty() {
     final workboard = _woarkboard;
     final text = _textController.text;
-    if (workboard != null && _textController.text.isNotEmpty ) {
+    if (workboard != null && _textController.text.isNotEmpty) {
       _workboardsService.updateWorkBoard(
         workboard: workboard,
         text: text,
