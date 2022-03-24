@@ -3,7 +3,7 @@ import 'package:flutter_application_2/services/auth/auth_service.dart';
 import 'package:flutter_application_2/services/cloud/firebase_cloud_storage.dart';
 import 'package:flutter_application_2/utilities/dialogs/generics/get_arguments.dart';
 import 'package:flutter_application_2/services/cloud/cloud_storage_exeptions.dart';
-import 'package:flutter_application_2/services/cloud/cloud_workboard.dart';
+import 'package:flutter_application_2/services/cloud/cloud_app.dart';
 
 class createOrUpdateWorkBoardView extends StatefulWidget {
   const createOrUpdateWorkBoardView({Key? key}) : super(key: key);

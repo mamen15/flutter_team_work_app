@@ -1,10 +1,21 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_application_2/services/cloud/cloud_storage_contsants.dart';
 import 'package:flutter_application_2/services/cloud/cloud_storage_exeptions.dart';
-import 'package:flutter_application_2/services/cloud/cloud_workboard.dart';
+import 'package:flutter_application_2/services/cloud/cloud_app.dart';
 
 class FirebaseCloudStorage {
   final workboards = FirebaseFirestore.instance.collection('workboards');
+  final todolists = FirebaseFirestore.instance.collection('to do list');
+
+  Future<void> deleteToDoList({
+    required String toDoListId,
+  }) async {
+    try {
+      await workboards.doc(toDoListId).delete();
+    } catch (e) {
+      throw CouldNotDeleteWorkBoardException();
+    }
+  }
 
   Future<void> deleteWorkboard({
     required String documentId,
@@ -13,6 +24,19 @@ class FirebaseCloudStorage {
       await workboards.doc(documentId).delete();
     } catch (e) {
       throw CouldNotDeleteWorkBoardException();
+    }
+  }
+
+  Future<void> updateToDoList({
+    required String toDoListId,
+    required String todolistText,
+  }) async {
+    try {
+      await workboards
+          .doc(toDoListId)
+          .update({todolistTextFieldName: todolistText});
+    } catch (e) {
+      throw CouldNotUpdateWorkBoardException();
     }
   }
 
@@ -27,11 +51,32 @@ class FirebaseCloudStorage {
     }
   }
 
+  Stream<Iterable<CloudToDoList>> allToDoLists({required String workboardId}) =>
+      todolists.snapshots().map((event) => event.docs
+          .map((doc) => CloudToDoList.fromSnapshot(doc))
+          .where((workboard) => workboard.workboardId == workboardId));
+
   Stream<Iterable<CloudWorkboard>> allWorkboards(
           {required String ownerUserId}) =>
       workboards.snapshots().map((event) => event.docs
           .map((doc) => CloudWorkboard.fromSnapshot(doc))
           .where((workboard) => workboard.ownerUserId == ownerUserId));
+
+  Future<Iterable<CloudWorkboard>> getToDoLists(
+      {required String workboardId}) async {
+    try {
+      return await todolists
+          .where(workboardId, isEqualTo: workboardId)
+          .get()
+          .then(
+            (value) => value.docs.map(
+              (doc) => CloudWorkboard.fromSnapshot(doc),
+            ),
+          );
+    } catch (e) {
+      throw CouldNotGetAllWorkBoardException();
+    }
+  }
 
   Future<Iterable<CloudWorkboard>> getWorkboards(
       {required String ownerUserId}) async {
@@ -49,16 +94,32 @@ class FirebaseCloudStorage {
     }
   }
 
-  Future<CloudWorkboard> createNewWorkboard({required String ownerUserId}) async {
+  Future<CloudToDoList> createNewToDoList(
+      {required String workboardId}) async {
+    final document = await workboards.add({
+      workboardIdFieldName: workboardId,
+      todolistTextFieldName: '',
+    });
+    final fetchedtodolist = await document.get();
+    return CloudToDoList(
+      toDoListId: fetchedtodolist.id,
+      workboardId: workboardId,
+      todolistText: '',
+    );
+  }
+
+  Future<CloudWorkboard> createNewWorkboard(
+      {required String ownerUserId}) async {
     final document = await workboards.add({
       ownerUserIdFieldName: ownerUserId,
       workboardTextFieldName: '',
     });
     final fetchedWorkboard = await document.get();
     return CloudWorkboard(
-      documentId: fetchedWorkboard.id, 
-      ownerUserId: ownerUserId, 
-      text: '',);
+      documentId: fetchedWorkboard.id,
+      ownerUserId: ownerUserId,
+      text: '',
+    );
   }
 
 // this below is a singleton initializer
