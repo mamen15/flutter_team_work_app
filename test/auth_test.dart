@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:flutter_application_2/services/auth/auth_exceptions.dart';
 import 'package:flutter_application_2/services/auth/auth_provider.dart';
@@ -41,18 +42,21 @@ void main() {
       final badEmailUser = provider.createUser(
         email: 'foo@bar.com',
         password: 'anypassword',
+        username: 'fefe',
       );
       expect(badEmailUser,
           throwsA(const TypeMatcher<UserNotFoundAuthException>()));
       final badPasswordUser = provider.createUser(
         email: 'someone@bar.com',
         password: 'foobar',
+        username: 'fefe',
       );
       expect(badPasswordUser,
           throwsA(const TypeMatcher<WrongPasswordAuthException>()));
       final user = await provider.createUser(
         email: 'foo',
         password: 'bar',
+        username: 'fefe',
       );
       expect(provider.currentUser, user);
       expect(user.isEmailVerified, false);
@@ -83,6 +87,8 @@ class MockAuthProvider implements AuthProvider {
   Future<AuthUser> createUser({
     required String email,
     required String password,
+    required String username,
+    Uint8List? file,
   }) async {
     if (!isInitialized) throw NotInitialzedExeption();
     await Future.delayed(const Duration(seconds: 1));
@@ -113,7 +119,7 @@ class MockAuthProvider implements AuthProvider {
       isEmailVerified: false,
       email: 'foo@bar.com',
       id: 'my_id',
-      name: 'hamid jlabando',
+      username: 'hamid jlabando',
     );
     _user = user;
     return Future.value(user);
@@ -136,7 +142,7 @@ class MockAuthProvider implements AuthProvider {
       isEmailVerified: true,
       email: 'foo@bar.com',
       id: 'my_id',
-      name: 'hamid jlabando',
+      username: 'hamid jlabando',
     );
     _user = newUser;
   }

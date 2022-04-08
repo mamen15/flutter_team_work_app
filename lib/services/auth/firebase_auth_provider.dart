@@ -1,8 +1,11 @@
+import 'dart:typed_data';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 
-
 import 'package:firebase_auth/firebase_auth.dart'
-    show FirebaseAuth, FirebaseAuthException;
+    show FirebaseAuth, FirebaseAuthException, UserCredential;
+import 'package:flutter_application_2/services/cloud/firebase_cloud_storage.dart';
 
 import '../../firebase_options.dart';
 import 'auth_exceptions.dart';
@@ -21,12 +24,31 @@ class FirebaseAuthProvider implements AuthProvider {
   Future<AuthUser> createUser({
     required String email,
     required String password,
+    required String username,
+    required Uint8List file,
   }) async {
     try {
       await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
+      String photoUrl = await FirebaseCloudStorage().uploadImageStorage(
+        'profilePicks',
+        file,
+        false,
+      );
+
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(currentUser!.id)
+          .set({
+        'username': username,
+        'uid': currentUser!.id,
+        'email': email,
+        'followers': [],
+        'following': [],
+        'photoUrl' : photoUrl,
+      });
       final user = currentUser;
       if (user != null) {
         return user;

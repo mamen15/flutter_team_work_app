@@ -1,11 +1,31 @@
+import 'dart:typed_data';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter_application_2/services/auth/auth_service.dart';
 import 'package:flutter_application_2/services/cloud/cloud_storage_contsants.dart';
 import 'package:flutter_application_2/services/cloud/cloud_storage_exeptions.dart';
 import 'package:flutter_application_2/services/cloud/cloud_app.dart';
+import 'package:path/path.dart';
 
 class FirebaseCloudStorage {
   final workboards = FirebaseFirestore.instance.collection('workboards');
   final todolists = FirebaseFirestore.instance.collection('to do list');
+  final FirebaseStorage _storage = FirebaseStorage.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  Future<String> uploadImageStorage(
+    String childName,
+    Uint8List file,
+    bool isPost,
+  ) async {
+    Reference ref =
+        _storage.ref().child(childName).child(_auth.currentUser!.uid);
+        UploadTask uploadTask = ref.putData(file);
+        TaskSnapshot snap = await uploadTask;
+        String downloadUrl = await snap.ref.getDownloadURL();
+        return downloadUrl;
+  }
 
   Future<void> deleteToDoList({
     required String toDoListId,
@@ -94,8 +114,7 @@ class FirebaseCloudStorage {
     }
   }
 
-  Future<CloudToDoList> createNewToDoList(
-      {required String workboardId}) async {
+  Future<CloudToDoList> createNewToDoList({required String workboardId}) async {
     final document = await workboards.add({
       workboardIdFieldName: workboardId,
       todolistTextFieldName: '',

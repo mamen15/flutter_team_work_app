@@ -44,6 +44,8 @@ dependencies:
   share_plus: ^4.0.2
   flutter_speed_dial: ^5.0.0+1
   rxdart: ^0.27.3
+  image_picker: ^0.8.5
+  firebase_storage: ^10.2.10
 
 dev_dependencies:
   flutter_test:

@@ -1,7 +1,9 @@
+import 'dart:typed_data';
+
 import 'package:flutter_application_2/services/auth/auth_user.dart';
 
 abstract class AuthProvider {
-  Future<void> initialize() ;
+  Future<void> initialize();
   AuthUser? get currentUser;
   Future<AuthUser> logIn({
     required String email,
@@ -10,6 +12,8 @@ abstract class AuthProvider {
   Future<AuthUser> createUser({
     required String email,
     required String password,
+    required String username,
+    required Uint8List file,
   });
   Future<void> logOut();
   Future<void> sendEmailVerification();
