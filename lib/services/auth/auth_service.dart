@@ -1,6 +1,3 @@
-import 'dart:ffi';
-import 'dart:typed_data';
-
 import 'package:flutter_application_2/services/auth/auth_user.dart';
 import 'package:flutter_application_2/services/auth/auth_provider.dart';
 import 'package:flutter_application_2/services/auth/firebase_auth_provider.dart';
@@ -12,19 +9,17 @@ class AuthService implements AuthProvider {
   factory AuthService.firebase() => AuthService(
         FirebaseAuthProvider(),
       );
-      
+
   @override
   Future<AuthUser> createUser({
     required String email,
     required String password,
     required String username,
-    Uint8List? file,
   }) =>
       provider.createUser(
         email: email,
         password: password,
         username: username,
-        file: file!,
       );
 
   @override

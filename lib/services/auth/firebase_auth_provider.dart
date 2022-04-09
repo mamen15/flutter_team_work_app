@@ -25,30 +25,29 @@ class FirebaseAuthProvider implements AuthProvider {
     required String email,
     required String password,
     required String username,
-    required Uint8List file,
   }) async {
     try {
       await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
-      String photoUrl = await FirebaseCloudStorage().uploadImageStorage(
-        'profilePicks',
-        file,
-        false,
+
+      AuthUser us = AuthUser(
+        username: username,
+        id: currentUser!.id,
+        email: email,
+        isEmailVerified: currentUser!.isEmailVerified,
+        followers: [],
+        following: [],
       );
 
       await FirebaseFirestore.instance
           .collection('users')
           .doc(currentUser!.id)
-          .set({
-        'username': username,
-        'uid': currentUser!.id,
-        'email': email,
-        'followers': [],
-        'following': [],
-        'photoUrl' : photoUrl,
-      });
+          .set(
+            us.toJson(),
+          );
+          
       final user = currentUser;
       if (user != null) {
         return user;

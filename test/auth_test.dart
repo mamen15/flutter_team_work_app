@@ -143,6 +143,7 @@ class MockAuthProvider implements AuthProvider {
       email: 'foo@bar.com',
       id: 'my_id',
       username: 'hamid jlabando',
+      
     );
     _user = newUser;
   }

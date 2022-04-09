@@ -1,3 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_2/constants/routes.dart';
 import 'package:flutter_application_2/services/auth/auth_service.dart';
@@ -21,18 +24,30 @@ class _WorkBoardViewState extends State<HomeView> {
   // get current user by email "userEmail"
   late final FirebaseCloudStorage _workboardsService;
   String get userId => AuthService.firebase().currentUser!.id;
+  String username = "";
 
   @override
   void initState() {
     _workboardsService = FirebaseCloudStorage();
     super.initState();
+    getUsername();
   }
 
+  void getUsername() async {
+    DocumentSnapshot snap = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .get();
+    setState(() {
+      username = (snap.data() as Map<String, dynamic>)['username'];
+    });
+  }
   // @override
   // void dispose() {
   //   _workboardsService.close();
   //   super.dispose();
   // }
+int page = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -42,45 +57,61 @@ class _WorkBoardViewState extends State<HomeView> {
 //        actions: [
       body: Column(
         children: [
-          // logout menu
-          Padding(
-            padding: const EdgeInsets.only(
-              bottom: 0,
-              left: 350.0,
-              right: 0,
-              top: 70.0,
-            ),
-            child: CircleAvatar(
-              backgroundColor: const Color(0xFF801E48),
-              child: PopupMenuButton<MenuAction>(
-                onSelected: (value) async {
-                  switch (value) {
-                    case MenuAction.logout:
-                      final shouldLogout = await showLogOutDialog(context);
-                      devtools.log(shouldLogout.toString());
-                      if (shouldLogout) {
-                        await AuthService.firebase().logOut();
-                        Navigator.of(context).pushNamedAndRemoveUntil(
-                          '/login/',
-                          (_) => false,
-                        );
-                      }
-                  }
-                },
-                itemBuilder: (context) => <PopupMenuEntry<MenuAction>>[
-                  const PopupMenuItem<MenuAction>(
-                    value: MenuAction.logout,
-                    child: Text('Log out'),
+          Flexible(
+            child: Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(
+                    bottom: 0,
+                    left: 50,
+                    right: 240,
+                    top: 50,
                   ),
-                ],
-                color: Colors.white,
-                offset: const Offset(0, 50),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16)),
-              ),
-              radius: 25,
+                  child: Text('hey $username'),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    top: 53,
+                  ),
+                  child: CircleAvatar(
+                    backgroundColor: const Color(0xFF801E48),
+                    child: PopupMenuButton<MenuAction>(
+                      onSelected: (value) async {
+                        switch (value) {
+                          case MenuAction.logout:
+                            final shouldLogout =
+                                await showLogOutDialog(context);
+                            devtools.log(shouldLogout.toString());
+                            if (shouldLogout) {
+                              await AuthService.firebase().logOut();
+                              Navigator.of(context).pushNamedAndRemoveUntil(
+                                '/login/',
+                                (_) => false,
+                              );
+                            }
+                        }
+                      },
+                      itemBuilder: (context) => <PopupMenuEntry<MenuAction>>[
+                        const PopupMenuItem<MenuAction>(
+                          value: MenuAction.logout,
+                          child: Text('Log out'),
+                        ),
+                      ],
+                      color: Colors.white,
+                      offset: const Offset(0, 50),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16)),
+                    ),
+                    radius: 25,
+                  ),
+                ),
+              ],
             ),
           ),
+          // logout menu
 
           StreamBuilder(
               stream: _workboardsService.allWorkboards(ownerUserId: userId),
@@ -157,6 +188,7 @@ class _WorkBoardViewState extends State<HomeView> {
           // FAB 2
         ],
       ),
+      
     );
   }
 }

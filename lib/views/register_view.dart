@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'dart:developer' as devtools show log;
 import 'package:flutter_application_2/constants/routes.dart';
@@ -7,8 +5,6 @@ import 'package:flutter_application_2/services/auth/auth_exceptions.dart';
 import 'package:flutter_application_2/services/auth/auth_service.dart';
 import 'package:flutter_application_2/utilities/dialogs/error_dialog.dart';
 import 'package:flutter_application_2/utilities/dialogs/generic_dialog.dart';
-import 'package:flutter_application_2/utilities/utililties/utils.dart';
-import 'package:image_picker/image_picker.dart';
 
 class RegisterView extends StatefulWidget {
   const RegisterView({Key? key}) : super(key: key);
@@ -21,7 +17,6 @@ class _RegisterViewState extends State<RegisterView> {
   late final TextEditingController _email;
   late final TextEditingController _password;
   late final TextEditingController _username;
-  Uint8List? _image;
   @override
   void initState() {
     _email = TextEditingController();
@@ -38,13 +33,6 @@ class _RegisterViewState extends State<RegisterView> {
     super.dispose();
   }
 
-  void selectImage() async {
-    Uint8List im = await pickImage(ImageSource.gallery);
-    setState(() {
-      _image = im;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -53,30 +41,6 @@ class _RegisterViewState extends State<RegisterView> {
       ),
       body: Column(
         children: [
-          Flexible(
-            child: Column(),
-            flex: 0,
-          ),
-          _image != null
-              ? CircleAvatar(
-                  radius: 64,
-                  backgroundImage: MemoryImage(_image!),
-                  backgroundColor: Colors.red,
-                )
-              : const CircleAvatar(
-                  radius: 64,
-                  backgroundImage:
-                      NetworkImage('https://i.stack.imgur.com/l60Hf.png'),
-                  backgroundColor: Colors.red,
-                ),
-          Positioned(
-            bottom: -10,
-            left: 80,
-            child: IconButton(
-              onPressed: selectImage,
-              icon: const Icon(Icons.add_a_photo),
-            ),
-          ),
           TextField(
             controller: _username,
             enableSuggestions: false,
@@ -105,13 +69,11 @@ class _RegisterViewState extends State<RegisterView> {
               final email = _email.text;
               final password = _password.text;
               final username = _username.text;
-              Uint8List? image = _image;
               try {
                 await AuthService.firebase().createUser(
                   email: email,
                   password: password,
                   username: username,
-                  file: image!,
                 );
                 AuthService.firebase().sendEmailVerification();
                 Navigator.of(context).pushNamed(verifyEmailRoute);

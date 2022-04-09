@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:flutter_application_2/services/auth/auth_user.dart';
 
 abstract class AuthProvider {
@@ -13,7 +11,6 @@ abstract class AuthProvider {
     required String email,
     required String password,
     required String username,
-    required Uint8List file,
   });
   Future<void> logOut();
   Future<void> sendEmailVerification();
