@@ -71,10 +71,10 @@ class FirebaseCloudStorage {
     }
   }
 
-  Stream<Iterable<CloudToDoList>> allToDoLists({required String workboardId}) =>
-      todolists.snapshots().map((event) => event.docs
-          .map((doc) => CloudToDoList.fromSnapshot(doc))
-          .where((workboard) => workboard.workboardId == workboardId));
+  // Stream<Iterable<CloudToDoList>> allToDoLists({required String workboardId}) =>
+  //     todolists.snapshots().map((event) => event.docs
+  //         .map((doc) => CloudToDoList.fromSnapshot(doc))
+  //         .where((workboard) => workboard.workboardId == workboardId));
 
   Stream<Iterable<CloudWorkboard>> allWorkboards(
           {required String ownerUserId}) =>
@@ -114,18 +114,18 @@ class FirebaseCloudStorage {
     }
   }
 
-  Future<CloudToDoList> createNewToDoList({required String workboardId}) async {
-    final document = await workboards.add({
-      workboardIdFieldName: workboardId,
-      todolistTextFieldName: '',
-    });
-    final fetchedtodolist = await document.get();
-    return CloudToDoList(
-      toDoListId: fetchedtodolist.id,
-      workboardId: workboardId,
-      todolistText: '',
-    );
-  }
+  // Future<CloudToDoList> createNewToDoList({required String workboardId}) async {
+  //   final document = await workboards.add({
+  //     workboardIdFieldName: workboardId,
+  //     todolistTextFieldName: '',
+  //   });
+  //   final fetchedtodolist = await document.get();
+  //   return CloudToDoList(
+  //     toDoListId: fetchedtodolist.id,
+  //     workboardId: workboardId,
+  //     todolistText: '',
+  //   );
+  // }
 
   Future<CloudWorkboard> createNewWorkboard(
       {required String ownerUserId}) async {
