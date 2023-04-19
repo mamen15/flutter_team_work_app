@@ -2,39 +2,34 @@
 
 This is a Flutter application that helps manage teamwork in schools. The app provides a range of features to simplify team management and communication.
 
-Features
+## Features
 The following are the features of the Teamwork Management Application:
 
-User Authentication
+## User Authentication
 Users can sign up and log in to the app using their email and password.
 
-Team Management
+## Team Management
 Users can create teams, add and remove team members, and manage team settings such as the team name, description, and profile picture.
 
-Task Management
+## Task Management
 Users can assign tasks to team members, set deadlines, and track progress. They can also view the status of each task and update it as necessary.
 
-Messaging
+## Messaging
 The app has a built-in messaging system that allows team members to communicate with each other. Users can send text messages, images, and files.
 
-Notifications
-The app sends notifications to users for new tasks, messages, and other team activities. Users can also customize the notification settings according to their preferences.
-
-Installation
+## Installation
 To install the app, you need to follow the steps below:
 
 Clone the repository to your local machine.
 Install the required dependencies by running the following command:
-arduino
-Copy code
+
 flutter pub get
-Usage
+
+## Usage
 To start the app, run the following command:
 
-arduino
-Copy code
 flutter run
 The app can be run on both Android and iOS devices.
 
-Contributing
+## Contributing
 Contributions to the app are welcome! If you have any suggestions or find any issues, please create an issue or submit a pull request.
