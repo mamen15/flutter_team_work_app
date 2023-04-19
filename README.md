@@ -23,12 +23,13 @@ To install the app, you need to follow the steps below:
 Clone the repository to your local machine.
 Install the required dependencies by running the following command:
 
-flutter pub get
+`flutter pub get`
 
 ## Usage
 To start the app, run the following command:
 
 `flutter run`
+
 The app can be run on both Android and iOS devices.
 
 ## Contributing
