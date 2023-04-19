@@ -28,7 +28,7 @@ flutter pub get
 ## Usage
 To start the app, run the following command:
 
-flutter run
+`flutter run`
 The app can be run on both Android and iOS devices.
 
 ## Contributing
